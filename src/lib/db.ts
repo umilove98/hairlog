@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { Redis } from '@upstash/redis';
 import { newId } from './id';
 import type {
   Category,
@@ -13,18 +14,41 @@ import type {
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'data.json');
+const KV_KEY = 'hairlog:data';
 
 const EMPTY: DataFile = { people: [], treatmentTypes: [], records: [] };
 
+// 프로덕션(Vercel): Upstash Redis. 로컬: 환경변수가 없으면 파일로 폴백.
+const redisUrl =
+  process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
+const redisToken =
+  process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
+const redis =
+  redisUrl && redisToken
+    ? new Redis({ url: redisUrl, token: redisToken })
+    : null;
+
+function normalize(parsed: Partial<DataFile> | null): DataFile {
+  return {
+    people: parsed?.people ?? [],
+    treatmentTypes: parsed?.treatmentTypes ?? [],
+    records: parsed?.records ?? [],
+  };
+}
+
 async function readAll(): Promise<DataFile> {
+  if (redis) {
+    const data = await redis.get<Partial<DataFile>>(KV_KEY);
+    if (!data) {
+      await redis.set(KV_KEY, EMPTY);
+      return { ...EMPTY };
+    }
+    return normalize(data);
+  }
+
   try {
     const raw = await fs.readFile(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw) as Partial<DataFile>;
-    return {
-      people: parsed.people ?? [],
-      treatmentTypes: parsed.treatmentTypes ?? [],
-      records: parsed.records ?? [],
-    };
+    return normalize(JSON.parse(raw) as Partial<DataFile>);
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       await writeAll(EMPTY);
@@ -35,6 +59,10 @@ async function readAll(): Promise<DataFile> {
 }
 
 async function writeAll(data: DataFile): Promise<void> {
+  if (redis) {
+    await redis.set(KV_KEY, data);
+    return;
+  }
   await fs.mkdir(DATA_DIR, { recursive: true });
   await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
