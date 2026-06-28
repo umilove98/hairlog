@@ -1,0 +1,36 @@
+{
+  "people": [
+    { "id": "p_me", "name": "나", "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "p_sib", "name": "동생", "createdAt": "2026-01-01T00:00:00.000Z" }
+  ],
+  "treatmentTypes": [
+    { "id": "t_dye", "name": "염색", "category": "hair", "defaultUnit": "ml" },
+    { "id": "t_scalp", "name": "두피 마사지", "category": "hair", "defaultUnit": "분" },
+    { "id": "t_mask", "name": "마스크팩", "category": "skin", "defaultUnit": "장" },
+    { "id": "t_exfo", "name": "각질제거", "category": "skin", "defaultUnit": "회" },
+    { "id": "t_tonic", "name": "토닉", "category": "skin", "defaultUnit": "ml" }
+  ],
+  "records": [
+    {
+      "id": "r_1",
+      "personId": "p_me",
+      "date": "2026-05-20",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "items": [
+        { "treatmentTypeId": "t_dye", "amount": 30, "unit": "ml", "note": "갈색" },
+        { "treatmentTypeId": "t_scalp", "amount": 15, "unit": "분" }
+      ],
+      "memo": "오랜만에 염색"
+    },
+    {
+      "id": "r_2",
+      "personId": "p_sib",
+      "date": "2026-05-19",
+      "createdAt": "2026-05-19T20:00:00.000Z",
+      "items": [
+        { "treatmentTypeId": "t_mask", "amount": 1, "unit": "장" },
+        { "treatmentTypeId": "t_tonic", "amount": 5, "unit": "ml" }
+      ]
+    }
+  ]
+}
