@@ -45,7 +45,7 @@ export default function BottomNav() {
               key={tab.href}
               href={tab.href}
               className={`flex flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[11px] font-medium ${
-                active ? 'text-black' : 'text-black/40'
+                active ? 'text-brand-deep' : 'text-black/40'
               }`}
             >
               <Icon size={20} strokeWidth={active ? 2.2 : 1.7} />

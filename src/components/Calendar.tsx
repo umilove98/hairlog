@@ -189,12 +189,12 @@ export default function Calendar({
                 className={[
                   'flex aspect-square flex-col items-center justify-start gap-1 rounded-lg pt-1.5 text-xs transition',
                   isSelected
-                    ? 'bg-black text-white'
+                    ? 'bg-brand text-brand-text'
                     : isToday
-                    ? 'border border-black bg-white text-black'
+                    ? 'border border-brand-deep bg-white text-black'
                     : muted
                     ? 'text-black/25'
-                    : 'text-black hover:bg-black/5',
+                    : 'text-black hover:bg-brand-light',
                 ].join(' ')}
               >
                 <span className="text-[13px] font-medium leading-none">
@@ -205,7 +205,7 @@ export default function Calendar({
                     {info.hair && (
                       <span
                         className={`inline-block h-1.5 w-1.5 rounded-full ${
-                          isSelected ? 'bg-white' : 'bg-black'
+                          isSelected ? 'bg-brand-text' : 'bg-brand-deep'
                         }`}
                       />
                     )}
@@ -213,8 +213,8 @@ export default function Calendar({
                       <span
                         className={`inline-block h-1.5 w-1.5 rounded-full border ${
                           isSelected
-                            ? 'border-white bg-black'
-                            : 'border-black bg-white'
+                            ? 'border-brand-text bg-white'
+                            : 'border-brand-deep bg-white'
                         }`}
                       />
                     )}
