@@ -19,15 +19,27 @@ const KV_KEY = 'hairlog:data';
 const EMPTY: DataFile = { people: [], treatmentTypes: [], records: [] };
 
 // 프로덕션(Vercel): Upstash Redis. 로컬: 환경변수가 없으면 파일로 폴백.
-// Upstash/KV 연동의 변수명이 접두사에 따라 달라서 가능한 이름들을 모두 확인한다.
+// Upstash/KV 연동은 접두사가 제각각이라(KV_…, UPSTASH_REDIS_KV_… 등),
+// 표준 이름을 먼저 보고 없으면 패턴으로 자동 탐색한다.
+function findEnv(
+  suffix: string,
+  exclude?: string
+): string | undefined {
+  for (const [key, value] of Object.entries(process.env)) {
+    if (!value) continue;
+    if (key.endsWith(suffix) && (!exclude || !key.includes(exclude))) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
 const redisUrl =
-  process.env.KV_REST_API_URL ??
-  process.env.UPSTASH_REDIS_KV_REST_API_URL ??
-  process.env.UPSTASH_REDIS_REST_URL;
+  process.env.KV_REST_API_URL ?? findEnv('REST_API_URL');
+// 쓰기 토큰 사용 (READ_ONLY 토큰은 제외)
 const redisToken =
   process.env.KV_REST_API_TOKEN ??
-  process.env.UPSTASH_REDIS_KV_REST_API_TOKEN ??
-  process.env.UPSTASH_REDIS_REST_TOKEN;
+  findEnv('REST_API_TOKEN', 'READ_ONLY');
 const redis =
   redisUrl && redisToken
     ? new Redis({ url: redisUrl, token: redisToken })
