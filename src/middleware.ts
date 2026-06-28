@@ -1,27 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { AUTH_COOKIE, authToken } from '@/lib/auth';
 
-// 간단한 공용 비밀번호 보호 (HTTP Basic Auth).
-// APP_PASSWORD 환경변수가 설정돼 있을 때만 동작하며,
+// 공용 비밀번호 보호. APP_PASSWORD가 설정돼 있을 때만 동작하며,
 // 설정이 없으면(로컬 개발 등) 그대로 통과시킨다.
-export function middleware(req: NextRequest) {
+// 로그인은 쿠키 기반이라 한 번 로그인하면 90일간 유지된다.
+export async function middleware(req: NextRequest) {
   const expected = process.env.APP_PASSWORD;
   if (!expected) return NextResponse.next();
 
-  const auth = req.headers.get('authorization');
-  if (auth?.startsWith('Basic ')) {
-    try {
-      const decoded = atob(auth.slice(6)); // "user:pass"
-      const pass = decoded.slice(decoded.indexOf(':') + 1);
-      if (pass === expected) return NextResponse.next();
-    } catch {
-      // 잘못된 헤더 → 아래에서 재요청
-    }
+  const { pathname } = req.nextUrl;
+  // 로그인 화면/엔드포인트는 통과
+  if (pathname === '/login' || pathname === '/api/login') {
+    return NextResponse.next();
   }
 
-  return new NextResponse('인증이 필요합니다', {
-    status: 401,
-    headers: { 'WWW-Authenticate': 'Basic realm="hairlog"' },
-  });
+  const token = req.cookies.get(AUTH_COOKIE)?.value;
+  if (token && token === (await authToken(expected))) {
+    return NextResponse.next();
+  }
+
+  // API는 401, 페이지는 로그인 화면으로 리다이렉트
+  if (pathname.startsWith('/api/')) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+  const url = req.nextUrl.clone();
+  url.pathname = '/login';
+  url.searchParams.set('from', pathname);
+  return NextResponse.redirect(url);
 }
 
 export const config = {
